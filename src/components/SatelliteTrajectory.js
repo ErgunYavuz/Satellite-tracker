@@ -16,8 +16,14 @@ export class SatelliteTrajectory {
     createFullTrajectory() {
         const points = [];
         const date = new Date();
-        for (let i = 0; i < 360; i++) {
-            const futureDate = new Date(date.getTime() + i * 60000); // 1 minute steps
+        
+        // Calculate the orbital period in minutes
+        const orbitalPeriod = this.calculateOrbitalPeriod();
+        
+        // Calculate 200 points along one complete orbit
+        const pointsCount = 2000;
+        for (let i = 0; i < pointsCount; i++) {
+            const futureDate = new Date(date.getTime() + (i / pointsCount) * orbitalPeriod * 60000);
             const positionAndVelocity = satellite.propagate(this.satrec, futureDate);
             const gmst = satellite.gstime(futureDate);
             const position = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
@@ -33,6 +39,13 @@ export class SatelliteTrajectory {
         this.lineGeometry.setFromPoints(points);
     }
 
+    calculateOrbitalPeriod() {
+        // Calculate mean motion (revolutions per day)
+        const meanMotion = this.satrec.no * 24 * 60 / (2 * Math.PI);
+        // Calculate orbital period in minutes
+        return 1440 / meanMotion;
+    }
+
     latLonToVector3(lat, lon, alt) {
         const phi = (90 - lat) * (Math.PI / 180);
         const theta = (lon + 180) * (Math.PI / 180);
@@ -45,7 +58,11 @@ export class SatelliteTrajectory {
         );
     }
 
-    toggleVisibility() {
-        this.line.visible = !this.line.visible;
+    show() {
+        this.line.visible = true;
+    }
+
+    hide() {
+        this.line.visible = false;
     }
 }

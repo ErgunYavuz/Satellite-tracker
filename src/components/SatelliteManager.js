@@ -1,11 +1,19 @@
-import { Satellite } from './Satellite';
-import { SatelliteTrajectory } from './SatelliteTrajectory';
+import * as THREE from 'three';
+import { Satellite } from './Satellite.js';
+import { SatelliteTrajectory } from './SatelliteTrajectory.js';
 
 export class SatelliteManager {
-    constructor(scene) {
+    constructor(scene, camera, renderer) {
         this.scene = scene;
+        this.camera = camera;
+        this.renderer = renderer;
         this.satellites = [];
         this.trajectories = [];
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
+        this.currentVisibleTrajectoryIndex = -1;
+
+        this.renderer.domElement.addEventListener('click', (event) => this.onMouseClick(event), false);
     }
 
     async fetchTLEData() {
@@ -25,19 +33,58 @@ export class SatelliteManager {
             this.scene.add(satellite.sprite);
             this.satellites.push(satellite);
 
-            const trajectory = new SatelliteTrajectory(satellite.mesh, satellite.satrec);
+            const trajectory = new SatelliteTrajectory(satellite.sprite, satellite.satrec);
             this.scene.add(trajectory.line);
             this.trajectories.push(trajectory);
-            console.log(satellite);
-            if (this.satellites.length >= 10) break; // Limit to 10 satellites for performance
+
+            if(i > 1000) break;
         }
-        console.log(this.satellites.length);
     }
 
     updatePositions(date) {
+        this.visibleSatelliteCount = 0;
         this.satellites.forEach((satellite, index) => {
             satellite.updatePosition(date);
-            //this.trajectories[index].update(date);
+            
+            this.trajectories[index].line.visible = satellite.isTrajectoryVisible;
         });
+    }
+
+    toggleTrajectory(index) {
+        if (this.currentVisibleTrajectoryIndex !== -1) {
+            this.satellites[this.currentVisibleTrajectoryIndex].toggleTrajectory(false);
+            this.satellites[this.currentVisibleTrajectoryIndex].unhighlight();
+        }
+
+        if (index !== this.currentVisibleTrajectoryIndex) {
+            this.satellites[index].toggleTrajectory(true);
+            this.satellites[index].highlight();
+            this.currentVisibleTrajectoryIndex = index;
+        } else {
+            this.currentVisibleTrajectoryIndex = -1;
+        }
+
+        // Force an update of the scene
+        this.updatePositions(new Date());
+    }
+
+    onMouseClick(event) {
+        this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        this.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+
+        const intersects = this.raycaster.intersectObjects(this.scene.children, true);
+
+        for (let i = 0; i < intersects.length; i++) {
+            if (intersects[i].object.userData.clickable) {
+                const clickedSatellite = intersects[i].object.userData.satellite;
+                const index = this.satellites.indexOf(clickedSatellite);
+                if (index !== -1) {
+                    this.toggleTrajectory(index);
+                    break;
+                }
+            }
+        }
     }
 }
