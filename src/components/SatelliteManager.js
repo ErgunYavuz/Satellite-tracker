@@ -37,7 +37,7 @@ export class SatelliteManager {
             this.scene.add(trajectory.line);
             this.trajectories.push(trajectory);
 
-            if(i > 1000) break;
+            if(i > 2000) break;
         }
     }
 
