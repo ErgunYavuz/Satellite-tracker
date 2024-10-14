@@ -5,7 +5,6 @@ export class Earth {
         this.radius = 6371; // Earth radius in km
         this.textureLoader = new THREE.TextureLoader();
 
-        // Load textures
         const dayTexture = this.textureLoader.load('/textures/earth_day.jpg');
         const nightTexture = this.textureLoader.load('/textures/earth_night.jpg');
         const cloudsTexture = this.textureLoader.load('/textures/earth_clouds.jpg');
@@ -16,7 +15,7 @@ export class Earth {
                 dayTexture: { value: dayTexture },
                 nightTexture: { value: nightTexture },
                 cloudsTexture: { value: cloudsTexture },
-                mixFactor: { value: 0.5 } // Controls day/night mix
+                mixFactor: { value: 0.5 }
             },
             vertexShader: `
                 varying vec2 vUv;
@@ -45,11 +44,9 @@ export class Earth {
         this.geometry = new THREE.SphereGeometry(this.radius, 64, 64);
         this.mesh = new THREE.Mesh(this.geometry, earthMaterial);
 
-        
-
     }
 
-    updateMixFactor(factor) {
-        this.mesh.material.uniforms.mixFactor.value = factor;
-    }
+    // updateMixFactor(factor) {
+    //     this.mesh.material.uniforms.mixFactor.value = factor;
+    // }
 }
