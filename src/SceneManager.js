@@ -31,8 +31,8 @@ export class SceneManager {
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.25;
         this.controls.screenSpacePanning = false;
-        this.controls.minDistance = 6500;
-        this.controls.maxDistance = 500000;
+        this.controls.minDistance = 10000;
+        this.controls.maxDistance = 100000;
 
         this.satelliteManager.createSatellites();
 

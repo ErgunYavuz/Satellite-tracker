@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import * as sat from 'satellite.js';
 import { Satellite } from './Satellite.js';
 import { SatelliteTrajectory } from './SatelliteTrajectory.js';
+import { int } from 'three/webgpu';
 
 export class SatelliteManager {
     constructor(scene, camera, renderer) {
@@ -55,7 +56,7 @@ export class SatelliteManager {
             // this.scene.add(trajectory.line);
             // this.trajectories.push(trajectory);
 
-            //if(i > 5000) break;
+            //if(i > 2000) break;
             
         }
         console.log("number of satellites : " + tleData.length);
@@ -110,17 +111,21 @@ export class SatelliteManager {
         this.raycaster.setFromCamera(this.mouse, this.camera);
 
         const intersects = this.raycaster.intersectObjects(this.scene.children, true);
-
-        for (let i = 0; i < intersects.length; i++) {
-            if (intersects[i].object.userData.clickable) {
-                const clickedSatellite = intersects[i].object.userData.satellite;
-                const index = this.satellites.indexOf(clickedSatellite);
-                this.displaySatelliteInfo(this.satellites[index]);
-                if (index !== -1) {
-                    this.toggleTrajectory(index);
-                    break;
+        console.log(intersects);
+        if (intersects.length != 0){
+            for (let i = 0; i < intersects.length; i++) {
+                if (intersects[i].object.userData.clickable) {
+                    const clickedSatellite = intersects[i].object.userData.satellite;
+                    const index = this.satellites.indexOf(clickedSatellite);
+                    this.displaySatelliteInfo(this.satellites[index]);
+                    if (index !== -1) {
+                        this.toggleTrajectory(index);
+                        break;
+                    }
                 }
             }
+        }else{
+
         }
     }
 
