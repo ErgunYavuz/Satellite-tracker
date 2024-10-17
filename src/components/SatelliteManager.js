@@ -1,10 +1,11 @@
 import * as THREE from 'three';
-import * as sat from 'satellite.js';
 import { Satellite } from './Satellite.js';
-import { SatelliteTrajectory } from './SatelliteTrajectory.js';
-import { int } from 'three/webgpu';
+//import { SatelliteTrajectory } from './SatelliteTrajectory.js';
 
 export class SatelliteManager {
+
+    selectedSatellite;
+
     constructor(scene, camera, renderer) {
         this.scene = scene;
         this.camera = camera;
@@ -56,7 +57,7 @@ export class SatelliteManager {
             // this.scene.add(trajectory.line);
             // this.trajectories.push(trajectory);
 
-            //if(i > 2000) break;
+            if(i > 2000) break;
             
         }
         console.log("number of satellites : " + tleData.length);
@@ -65,7 +66,6 @@ export class SatelliteManager {
     updatePositions(date) {
         this.satellites.forEach((satellite, index) => {
             satellite.updatePosition(date);
-            
             const trajectory = this.trajectories.get(index);
             if (trajectory) {
                 trajectory.line.visible = satellite.isTrajectoryVisible;
@@ -73,99 +73,77 @@ export class SatelliteManager {
         });
     }
 
-    toggleTrajectory(index) {
-        if (this.currentVisibleTrajectoryIndex !== -1) {
-            this.satellites[this.currentVisibleTrajectoryIndex].toggleTrajectory(false);
-            this.satellites[this.currentVisibleTrajectoryIndex].unhighlight();
-            const prevTrajectory = this.trajectories.get(this.currentVisibleTrajectoryIndex);
-            if (prevTrajectory) {
-                prevTrajectory.hide();
-            }
-        }
+    // toggleTrajectory(index) {
+    //     if (this.currentVisibleTrajectoryIndex !== -1) {
+    //         this.satellites[this.currentVisibleTrajectoryIndex].toggleTrajectory(false);
+    //         this.satellites[this.currentVisibleTrajectoryIndex].unhighlight();
+    //         const prevTrajectory = this.trajectories.get(this.currentVisibleTrajectoryIndex);
+    //         if (prevTrajectory) {
+    //             prevTrajectory.hide();
+    //         }
+    //     }
 
-        if (index !== this.currentVisibleTrajectoryIndex) {
-            this.satellites[index].toggleTrajectory(true);
-            this.satellites[index].highlight();
+    //     if (index !== this.currentVisibleTrajectoryIndex) {
+    //         this.satellites[index].toggleTrajectory(true);
+    //         this.satellites[index].highlight();
             
-            let trajectory = this.trajectories.get(index);
-            if (!trajectory) {
-                trajectory = new SatelliteTrajectory(this.satellites[index].sprite, this.satellites[index].satrec);
-                this.scene.add(trajectory.line);
-                this.trajectories.set(index, trajectory);
-            }
-            trajectory.show();
+    //         let trajectory = this.trajectories.get(index);
+    //         if (!trajectory) {
+    //             trajectory = new SatelliteTrajectory(this.satellites[index].sprite, this.satellites[index].satrec);
+    //             this.scene.add(trajectory.line);
+    //             this.trajectories.set(index, trajectory);
+    //         }
+    //         trajectory.show();
             
-            this.currentVisibleTrajectoryIndex = index;
-        } else {
-            this.currentVisibleTrajectoryIndex = -1;
-        }
-
-        // Force an update of the scene
-        this.updatePositions(new Date());
-    }
+    //         this.currentVisibleTrajectoryIndex = index;
+    //     } else {
+    //         this.currentVisibleTrajectoryIndex = -1;
+    //     }
+    //     // Force an update of the scene
+    //     this.updatePositions(new Date());
+    // }
 
     onMouseClick(event) {
         this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         this.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
-
         this.raycaster.setFromCamera(this.mouse, this.camera);
-
         const intersects = this.raycaster.intersectObjects(this.scene.children, true);
-        console.log(intersects);
-        if (intersects.length != 0){
-            for (let i = 0; i < intersects.length; i++) {
-                if (intersects[i].object.userData.clickable) {
-                    const clickedSatellite = intersects[i].object.userData.satellite;
-                    const index = this.satellites.indexOf(clickedSatellite);
-                    this.displaySatelliteInfo(this.satellites[index]);
-                    if (index !== -1) {
-                        this.toggleTrajectory(index);
+        for (let i = 0; i < intersects.length; i++) {
+            if (intersects[i].object.userData.clickable) {
+                if (this.selectedSatellite){
+                    this.selectedSatellite.untoggle();
+                    if(intersects[i].object.userData.satellite.name === this.selectedSatellite.name){
+                        this.selectedSatellite = null;
                         break;
                     }
                 }
+                this.selectedSatellite = intersects[i].object.userData.satellite;
+                this.selectedSatellite.toggle();
+                this.displaySatelliteInfo(this.selectedSatellite);
+                //this.scene.add(this.selectedSatellite.oribitLine);
+                break;
             }
-        }else{
-
         }
     }
 
+
     displaySatelliteInfo(satellite) {
-        const satrec = satellite.satrec;
-        const date = new Date();
-        const positionAndVelocity = sat.propagate(satrec, date);
-
-        // Calculate orbital elements
-        const meanMotion = satrec.no * 60 * 24 / (2 * Math.PI); // Revolutions per day
-        const period = 1440 / meanMotion; // Orbital period in minutes
-        //const apogee = (satrec.a * (1 + satrec.ecco) - 6371).toFixed(2); // km
-        //const perigee = (satrec.a * (1 - satrec.ecco) - 6371).toFixed(2); // km
-        const inclination = (satrec.inclo * 180 / Math.PI).toFixed(2); // degrees
-
-        // Calculate current altitude and velocity
-        const gmst = sat.gstime(date);
-        const position = sat.eciToGeodetic(positionAndVelocity.position, gmst);
-        const altitude = (position.height).toFixed(2);  
-        const velocity = (Math.sqrt(
-            positionAndVelocity.velocity.x ** 2 +
-            positionAndVelocity.velocity.y ** 2 +
-            positionAndVelocity.velocity.z ** 2
-        )).toFixed(2); 
-
+        const infos = satellite.getSatelliteInfo()
         console.log(`
             Satellite Information:
             ----------------------
-            Name: ${satellite.name}
-            Inclination: ${inclination}°
-            Current Altitude: ${altitude} km
-            Current Velocity: ${velocity} km/s
-            Orbital Period: ${period.toFixed(2)} min
+            Name: ${infos.name}
+            Inclination: ${infos.inclination}°
+            Current Altitude: ${infos.altitude} km
+            Current Velocity: ${infos.velocity} km/s
+            Orbital Period: ${infos.period} min
         `);
         this.infoDisplay.innerHTML = `
-            <h2 style="margin: 0 0 10px 0; font-size: 18px;">${satellite.name}</h2>
-            <p>Inclination: ${inclination}°</p>
-            <p>Altitude: ${altitude} km</p>
-            <p>Velocity: ${velocity} km/s</p>
-            <p>Period: ${period.toFixed(2)} min</p>
+            <h2 style="margin: 0 0 10px 0; font-size: 18px;">${infos.name}</h2>
+            <p>Inclination: ${infos.inclination}°</p>
+            <p>Altitude: ${infos.altitude} km</p>
+            <p>Velocity: ${infos.velocity} km/s</p>
+            <p>Period: ${infos.period} min</p>
         `;
         this.infoDisplay.style.display = 'block';
     }
