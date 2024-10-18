@@ -1,21 +1,21 @@
 import * as THREE from 'three';
 import * as satellite from 'satellite.js';
 
-
 export class Satellite {
 
     positionAndVelocity;
     oribitLine;
+    groundTrackLine;
 
     constructor(name, tle1, tle2) {
         this.name = name;
         this.satrec = satellite.twoline2satrec(tle1, tle2);
 
         const texture = this.createTexture();
-        const map = new THREE.TextureLoader().load("/textures/dot.png")
+        //const map = new THREE.TextureLoader().load("/textures/dot.png")
 
         this.spriteMaterial = new THREE.SpriteMaterial({ 
-            map: map,
+            map: texture,
             color: 0xffffff,
             transparent: true
         });
@@ -28,6 +28,10 @@ export class Satellite {
         
         this.sprite.userData.clickable = true;
         this.sprite.userData.satellite = this;
+
+        const groundTrackGeometry = new THREE.BufferGeometry();
+        const groundTrackMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 }); // Red color
+        this.groundTrackLine = new THREE.Line(groundTrackGeometry, groundTrackMaterial);
     }
 
     createTexture() {
@@ -47,13 +51,43 @@ export class Satellite {
         return new THREE.CanvasTexture(canvas);
     }
 
-    updatePosition(date) {
+    updatePosition(date, selected = false) {
+        // this.date = date;
+        // this.positionAndVelocity = satellite.propagate(this.satrec, this.date);
+        // if (this.positionAndVelocity.position) {
+        //     const gmst = satellite.gstime(this.date);
+        //     const geoPosition = satellite.eciToGeodetic(this.positionAndVelocity.position, gmst);
+        //     // Convert latitude and longitude
+        //     const lat = satellite.degreesLat(geoPosition.latitude);
+        //     const lon = satellite.degreesLong(geoPosition.longitude);
+        //     this.sprite.position.copy(this.latLongToVector3(lat, lon, 6371.0 + geoPosition.height));
+        // }
+
         this.date = date;
         this.positionAndVelocity = satellite.propagate(this.satrec, this.date);
         if (this.positionAndVelocity.position) {
             const eci = this.positionAndVelocity.position;
+            const latitude = satellite.degreesLat(this.positionAndVelocity.position.latitude);
+            const longitude = satellite.degreesLong(this.positionAndVelocity.position.longitude);
             this.sprite.position.set(eci.x ,eci.z ,-eci.y);
         }
+        if (selected){
+            this.groundTrackLine.geometry.setFromPoints([new THREE.Vector3(0, 0, 0), this.sprite.position]);
+
+        }
+    }
+
+
+    latLongToVector3(lat, lon, radius) {
+        //console.log(this.name, lat, lon, radius)
+        const phi = (90 - lat) * (Math.PI / 180);
+        const theta = (lon + 180) * (Math.PI / 180);
+    
+        const x = -(radius * Math.sin(phi) * Math.cos(theta));
+        const z = (radius * Math.sin(phi) * Math.sin(theta));
+        const y = (radius * Math.cos(phi));
+
+        return new THREE.Vector3(x, y, z);
     }
 
     getOrbitalPeriod(){
@@ -64,24 +98,27 @@ export class Satellite {
     getSatelliteInfo(){
         const name = this.name;
         const period = this.getOrbitalPeriod();
-        //const apogee = (satrec.a * (1 + satrec.ecco) - 6371).toFixed(2); // km
-        //const perigee = (satrec.a * (1 - satrec.ecco) - 6371).toFixed(2); // km
+        const apogee = (this.satrec.a * (1 + this.satrec.ecco) - 6371).toFixed(2); // km
+        const perigee = (this.satrec.a * (1 - this.satrec.ecco) - 6371).toFixed(2); // km
         const inclination = (this.satrec.inclo * 180 / Math.PI).toFixed(2); // degrees
 
         // Calculate current altitude and velocity
         const gmst = satellite.gstime(this.date);
         const position = satellite.eciToGeodetic(this.positionAndVelocity.position, gmst);
+        // Calculate latitude and longitude
+        const latitude = satellite.degreesLat(position.latitude).toFixed(2);
+        const longitude = satellite.degreesLong(position.longitude).toFixed(2);;
         const altitude = (position.height).toFixed(2);  
         const velocity = (Math.sqrt(
             this.positionAndVelocity.velocity.x ** 2 +
             this.positionAndVelocity.velocity.y ** 2 +
             this.positionAndVelocity.velocity.z ** 2
         )).toFixed(2); 
-        return {name, inclination, altitude, velocity, period};
+        return {name, inclination, latitude, longitude, altitude, velocity, period, apogee, perigee};
     }
 
     getTrajectory() {
-        const pointsCount = 200;
+        const pointsCount = 360;
         const points = [];
         const orbitalPeriod = this.getOrbitalPeriod();
         for (let i = 0; i < pointsCount; i++) {
@@ -94,24 +131,73 @@ export class Satellite {
             }
         }
 
-        const lineGeometry = new THREE.BufferGeometry();
-        lineGeometry.setFromPoints(points);
-        const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffff00 });
-        this.oribitLine = new THREE.Line(lineGeometry, lineMaterial);
+        points.push(points[0].clone());
+
+        // const lineGeometry = new THREE.BufferGeometry();
+        // lineGeometry.setFromPoints(points);
+        // const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffff00 });
+        // this.oribitLine = new THREE.Line(lineGeometry, lineMaterial);
+
+        const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+        const lineMaterial = new THREE.LineBasicMaterial({ 
+            color: 0xffff00,
+            linewidth: 2 // Note: linewidth > 1 only works in WebGL 2
+        });
+        this.oribitLine = new THREE.LineSegments(lineGeometry, lineMaterial);
     }
+
+    // getTrajectory() {
+    //     const pointsCount = 360;
+    //     const points = [];
+    //     const orbitalPeriod = this.getOrbitalPeriod();
+    //     for (let i = 0; i < pointsCount; i++) {
+    //         const futureDate = new Date(this.date.getTime() + (i / pointsCount) * orbitalPeriod * 60000);
+    //         const positionAndVelocity = satellite.propagate(this.satrec, futureDate);
+    //         if (positionAndVelocity.position) {
+    //             const gmst = satellite.gstime(futureDate);
+    //             const geoPosition = satellite.eciToGeodetic(positionAndVelocity.position, gmst);
+    //             const lat = satellite.degreesLat(geoPosition.latitude);
+    //             const lon = satellite.degreesLong(geoPosition.longitude);
+    //             const vector = this.latLongToVector3(lat, lon, 6371.0 + geoPosition.height);
+    //             points.push(vector);
+    //         }
+    //     }
+
+    //     points.push(points[0].clone());
+
+
+
+    //     const infos = this.getSatelliteInfo();
+    //     //const orbit = new BasicOrbit(infos.inclination, infos.apogee, infos.perigee, infos.period);
+    //     console.log(infos.inclination, infos.apogee, infos.perigee)
+    //     const orbit = new BasicOrbit(infos.inclination, infos.apogee, infos.perigee);
+    //     const trajectory = orbit.getTrajectory();
+
+    //     const lineGeometry = new THREE.BufferGeometry().setFromPoints(trajectory);
+    //     const lineMaterial = new THREE.LineBasicMaterial({ 
+    //         color: 0xffff00,
+    //         linewidth: 2 // Note: linewidth > 1 only works in WebGL 2
+    //     });
+    //     this.oribitLine = new THREE.LineSegments(lineGeometry, lineMaterial);
+
+    // }
 
     toggle(){
         this.getTrajectory();
         this.spriteMaterial.color.copy(this.highlightColor);
         this.sprite.renderOrder = 1;
         this.oribitLine.visible = true;
+        this.groundTrackLine.visible = true;
         this.sprite.parent.add(this.oribitLine);
+        this.sprite.parent.add(this.groundTrackLine);
     }
 
     untoggle(){
         this.spriteMaterial.color.copy(this.defaultColor);
         this.sprite.renderOrder = 0;
-        this.oribitLine.visible = false
+        this.oribitLine.visible = false;
+        this.groundTrackLine.visible = false;
         this.sprite.parent.remove(this.oribitLine);
+        this.sprite.parent.remove(this.groundTrackLine);
     }
 }
