@@ -28,7 +28,6 @@ export class SatelliteManager {
     async createSatellites() {
         const tleData = await this.fetchTLEData();
         for (let i = 0; i < tleData.length; i += 3) {
-            console.log(tleData);
             const name = tleData[i].trim();
             const line1 = tleData[i + 1];
             const line2 = tleData[i + 2];
@@ -37,7 +36,7 @@ export class SatelliteManager {
             this.scene.add(satellite.sprite);
             this.satellites.push(satellite);
 
-            if(i > 2000) break;
+            //if(i > 2000) break;
         }
         console.log("number of satellites : " + this.satellites.length);
     }
@@ -76,7 +75,7 @@ export class SatelliteManager {
         this.selectedSatellite = satellite;
         this.selectedSatellite.toggle();
         this.displaySatelliteInfo(this.selectedSatellite);
-        this.focusOnSatellite(satellite);
+        //this.focusOnSatellite(satellite);
     }
 
     displaySatelliteInfo(satellite) {
@@ -97,7 +96,7 @@ export class SatelliteManager {
         const foundSatellite = this.satellites.find(sat => sat.name.toLowerCase().includes(name.toLowerCase()));
         if (foundSatellite) {
             this.selectSatellite(foundSatellite);
-            this.focusOnSatellite(foundSatellite);
+            //this.focusOnSatellite(foundSatellite);
         } else {
             alert('Satellite not found');
         }
