@@ -75,7 +75,7 @@ export class SatelliteManager {
         this.selectedSatellite = satellite;
         this.selectedSatellite.toggle();
         this.displaySatelliteInfo(this.selectedSatellite);
-        //this.focusOnSatellite(satellite);
+        this.focusOnSatellite(satellite);
     }
 
     displaySatelliteInfo(satellite) {
@@ -149,7 +149,7 @@ export class SatelliteManager {
     }
 
     focusOnSatellite(satellite) {
-        const offset = new THREE.Vector3(0, 0, 20000);
+        const offset = new THREE.Vector3(0, 0, 1000);
         const targetPosition = satellite.sprite.position.clone().add(offset);
         this.camera.position.copy(targetPosition);
         this.camera.lookAt(satellite.sprite.position);

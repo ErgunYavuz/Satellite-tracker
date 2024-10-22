@@ -64,7 +64,7 @@ export class Satellite {
 
     getOrbitalPeriod(){
         const meanMotion = this.satrec.no * 60 * 24 / (2 * Math.PI); // Revolutions per day
-        return (1440 / meanMotion).toFixed(2); // Orbital period in minutes
+        return Math.ceil(1440 / meanMotion)//.toFixed(2); // Orbital period in minutes
     }
 
     getSatelliteInfo(){
