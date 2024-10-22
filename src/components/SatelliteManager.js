@@ -20,7 +20,7 @@ export class SatelliteManager {
     }
 
     async fetchTLEData() {
-        const response = await fetch('/Satellite-tracker/public/satellite-data.txt');
+        const response = await fetch('/Satellite-tracker/satellite-data.txt');
         const text = await response.text();
         return text.trim().split('\n');
     }
