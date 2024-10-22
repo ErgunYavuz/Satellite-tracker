@@ -20,7 +20,7 @@ export class SatelliteManager {
     }
 
     async fetchTLEData() {
-        const response = await fetch('/satellite-data.txt');
+        const response = await fetch('/Satellite-tracker/public/satellite-data.txt');
         const text = await response.text();
         return text.trim().split('\n');
     }
@@ -28,6 +28,7 @@ export class SatelliteManager {
     async createSatellites() {
         const tleData = await this.fetchTLEData();
         for (let i = 0; i < tleData.length; i += 3) {
+            console.log(tleData);
             const name = tleData[i].trim();
             const line1 = tleData[i + 1];
             const line2 = tleData[i + 2];

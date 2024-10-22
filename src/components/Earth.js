@@ -10,7 +10,7 @@ export class Earth {
         this.rotationSpeed = 7.2921159e-5;
 
         this.textureLoader = new THREE.TextureLoader();
-        const dayTexture = this.textureLoader.load('/textures/earth_day.jpg');
+        const dayTexture = this.textureLoader.load('/Satellite-tracker/public/textures/earth_day.jpg');
         const earthMaterial = new THREE.MeshBasicMaterial({
             map: dayTexture
         });
