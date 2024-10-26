@@ -11,7 +11,8 @@ export class SceneManager {
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000000);
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
-
+        this.updateInterval = 100; 
+        
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
         document.body.appendChild(this.stats.dom);
@@ -32,8 +33,6 @@ export class SceneManager {
         this.earth = new Earth(this.scene);
         this.satelliteManager = new SatelliteManager(this.scene, this.camera, this.renderer);
         this.lastUpdateTime = Date.now();
-        //this.scene.add(this.earth.mesh);
-        this.satelliteManager.createSatellites();
 
         window.addEventListener('resize', () => this.onWindowResize(), false);
 
@@ -46,17 +45,21 @@ export class SceneManager {
     }
 
     animate() {
-        this.stats.begin();
-
         requestAnimationFrame(() => this.animate());
-        const now = new Date();
-        const deltaTime = now - this.lastUpdateTime;
-        this.lastUpdateTime = now;
-        this.satelliteManager.updatePositions(now);
-        this.earth.update(deltaTime);
+    
+        const currentTime = Date.now();
+        const deltaTime = currentTime - this.lastUpdateTime;
+
+        if (deltaTime >= this.updateInterval) {
+            const now = new Date();
+            this.satelliteManager.updatePositions(now);
+            this.earth.update(deltaTime);
+            this.lastUpdateTime = currentTime;
+        }
+
+        // These still need to run every frame
         this.controls.update();
         this.renderer.render(this.scene, this.camera);
-        
-        this.stats.end();
+        this.stats.update();
     }
 }

@@ -1,5 +1,9 @@
 import * as THREE from 'three';
 import { Satellite } from './Satellite.js';
+import { SatelliteInstancing } from './SatelliteInstancing.js';
+
+const DEFAULTCOLOR = new THREE.Color(0xffffff);
+const HIGHLIGHTCOLOR = new THREE.Color(0xffff00);
 
 export class SatelliteManager {
     selectedSatellite;
@@ -8,7 +12,6 @@ export class SatelliteManager {
         this.scene = scene;
         this.camera = camera;
         this.renderer = renderer;
-        this.satellites = [];
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
 
@@ -17,6 +20,12 @@ export class SatelliteManager {
         this.searchInput = this.createSearchInput();
         document.body.appendChild(this.infoDisplay);
         document.body.appendChild(this.searchInput);
+
+        this.satellites = [];
+        this.satelliteInstancing = null; // Will be initialized after loading satellites
+
+        this.initiateSatellites();
+
     }
 
     async fetchTLEData() {
@@ -25,47 +34,58 @@ export class SatelliteManager {
         return text.trim().split('\n');
     }
 
-    async createSatellites() {
+    async initiateSatellites() {
         const tleData = await this.fetchTLEData();
+        const satelliteCount = Math.floor(tleData.length / 3);
+        
+        // Initialize instanced rendering
+        this.satelliteInstancing = new SatelliteInstancing(satelliteCount);
+        this.scene.add(this.satelliteInstancing.mesh);
+        
         for (let i = 0; i < tleData.length; i += 3) {
             const name = tleData[i].trim();
             const line1 = tleData[i + 1];
             const line2 = tleData[i + 2];
 
             const satellite = new Satellite(name, line1, line2);
-            this.scene.add(satellite.sprite);
             this.satellites.push(satellite);
-
-            //if(i > 2000) break;
         }
-        console.log("number of satellites : " + this.satellites.length);
+        
+        console.log("number of satellites: " + this.satellites.length);
     }
 
     updatePositions(date) {
-        this.satellites.forEach(satellite => {
-            if(this.selectedSatellite && satellite.name === this.selectedSatellite.name){
-                satellite.updatePosition(date, true);
-            }
+        this.satellites.forEach((satellite, index) => {
             satellite.updatePosition(date);
+            
+            // Update instance position and color
+            this.satelliteInstancing.updateInstance(
+                index,
+                satellite.position,
+                satellite.color
+            );
         });
     }
 
     onMouseClick(event) {
         this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        this.mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+        this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        
         this.raycaster.setFromCamera(this.mouse, this.camera);
-        const intersects = this.raycaster.intersectObjects(this.scene.children, true);
-        for (let i = 0; i < intersects.length; i++) {
-            if (intersects[i].object.userData.clickable) {
-                this.selectSatellite(intersects[i].object.userData.satellite);
-                break;
-            }
+        const intersects = this.raycaster.intersectObject(this.satelliteInstancing.mesh);
+        
+        if (intersects.length > 0) {
+            const instanceId = intersects[0].instanceId;
+            const satellite = this.satellites[instanceId];
+            this.selectSatellite(satellite);
         }
     }
 
     selectSatellite(satellite) {
         if (this.selectedSatellite) {
-            this.selectedSatellite.untoggle();
+            // Reset previous selection
+            this.selectedSatellite.untoggle(this.scene);
+            
             if (satellite.name === this.selectedSatellite.name) {
                 this.selectedSatellite = null;
                 this.infoDisplay.style.display = 'none';
@@ -73,9 +93,8 @@ export class SatelliteManager {
             }
         }
         this.selectedSatellite = satellite;
-        this.selectedSatellite.toggle();
+        this.selectedSatellite.toggle(this.scene);
         this.displaySatelliteInfo(this.selectedSatellite);
-        //this.focusOnSatellite(satellite);
     }
 
     displaySatelliteInfo(satellite) {
@@ -148,10 +167,10 @@ export class SatelliteManager {
         return searchContainer;
     }
 
-    focusOnSatellite(satellite) {
-        const offset = new THREE.Vector3(0, 0, 1000);
-        const targetPosition = satellite.sprite.position.clone().add(offset);
-        this.camera.position.copy(targetPosition);
-        this.camera.lookAt(satellite.sprite.position);
-    }
+    // focusOnSatellite(satellite) {
+    //     const offset = new THREE.Vector3(0, 0, 1000);
+    //     const targetPosition = satellite.sprite.position.clone().add(offset);
+    //     this.camera.position.copy(targetPosition);
+    //     this.camera.lookAt(satellite.sprite.position);
+    // }
 }

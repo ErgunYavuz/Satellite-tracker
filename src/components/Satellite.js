@@ -12,59 +12,31 @@ export class Satellite {
     constructor(name, tle1, tle2) {
         this.name = name;
         this.satrec = satellite.twoline2satrec(tle1, tle2);
-
-        const texture = this.createTexture();
-        //const map = new THREE.TextureLoader().load("/textures/dot.png")
-
-        this.spriteMaterial = new THREE.SpriteMaterial({ 
-            map: texture,
-            color: 0xffffff,
-            transparent: true
-        });
-
-        this.sprite = new THREE.Sprite(this.spriteMaterial);
-        this.sprite.scale.set(100, 100, 1);
+        this.color = DEFAULTCOLOR.clone();
+        this.selected = false;
+        this.position = new THREE.Vector3();
         
-        this.sprite.userData.clickable = true;
-        this.sprite.userData.satellite = this;
-
+        // Create orbit and ground track lines (keep these as individual objects)
         const groundTrackGeometry = new THREE.BufferGeometry();
-        const groundTrackMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 }); // Red color
+        const groundTrackMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
         this.groundTrackLine = new THREE.Line(groundTrackGeometry, groundTrackMaterial);
     }
 
-    createTexture() {
-        const canvas = document.createElement('canvas');
-        canvas.width = 64;
-        canvas.height = 64;
-        const context = canvas.getContext('2d');
-
-        const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
-        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-        gradient.addColorStop(0.8, 'rgba(255, 255, 255, 0.8)');
-        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
-        context.fillStyle = gradient;
-        context.fillRect(0, 0, 64, 64);
-
-        return new THREE.CanvasTexture(canvas);
-    }
-
-    updatePosition(date, selected = false) {
+    updatePosition(date) {
         this.date = date;
         this.positionAndVelocity = satellite.propagate(this.satrec, this.date);
         if (this.positionAndVelocity.position) {
             const eci = this.positionAndVelocity.position;
-            this.sprite.position.set(eci.x ,eci.z ,-eci.y);
+            this.position.set(eci.x, eci.z, -eci.y);
         }
-        if (selected){
-            this.groundTrackLine.geometry.setFromPoints([new THREE.Vector3(0, 0, 0), this.sprite.position]);
+        if (this.selected) {
+            this.groundTrackLine.geometry.setFromPoints([new THREE.Vector3(0, 0, 0), this.position]);
         }
     }
 
     getOrbitalPeriod(){
         const meanMotion = this.satrec.no * 60 * 24 / (2 * Math.PI); // Revolutions per day
-        return Math.ceil(1440 / meanMotion)//.toFixed(2); // Orbital period in minutes
+        return (1440 / meanMotion).toFixed(2); // Orbital period in minutes
     }
 
     getSatelliteInfo(){
@@ -73,10 +45,9 @@ export class Satellite {
         // const perigee = (this.satrec.a * (1 - this.satrec.ecco) - 6371).toFixed(2); // km
         const inclination = (this.satrec.inclo * 180 / Math.PI).toFixed(2); // degrees
 
-        // Calculate current altitude and velocity
         const gmst = satellite.gstime(this.date);
         const position = satellite.eciToGeodetic(this.positionAndVelocity.position, gmst);
-        // Calculate latitude and longitude
+
         const latitude = satellite.degreesLat(position.latitude).toFixed(2);
         const longitude = satellite.degreesLong(position.longitude).toFixed(2);;
         const altitude = (position.height).toFixed(2);  
@@ -88,7 +59,7 @@ export class Satellite {
         return {name: this.name, inclination, latitude, longitude, altitude, velocity, period};
     }
 
-    getTrajectory() {
+    getProjectedPath() {
         const pointsCount = 360;
         const points = [];
         const orbitalPeriod = this.getOrbitalPeriod();
@@ -115,23 +86,19 @@ export class Satellite {
         this.oribitLine = new THREE.LineSegments(lineGeometry, lineMaterial);
     }
 
-    toggle(){
-        this.getTrajectory();
-        this.spriteMaterial.color.copy(HIGHLIGHTCOLOR);
-        this.sprite.renderOrder = 1;
-        this.oribitLine.visible = true;
-        this.groundTrackLine.visible = true;
-        this.sprite.parent.add(this.oribitLine);
-        this.sprite.parent.add(this.groundTrackLine);
+    toggle(scene){
+        this.selected = true;
+        this.color.copy(HIGHLIGHTCOLOR);
+        this.getProjectedPath();
+        scene.add(this.oribitLine);
+        scene.add(this.groundTrackLine);
     }
 
-    untoggle(){
-        this.spriteMaterial.color.copy(DEFAULTCOLOR);
-        this.sprite.renderOrder = 0;
-        this.oribitLine.visible = false;
-        this.groundTrackLine.visible = false;
-        this.sprite.parent.remove(this.oribitLine);
-        this.sprite.parent.remove(this.groundTrackLine);
+    untoggle(scene){
+        this.selected = true;
+        this.color.copy(DEFAULTCOLOR);
+        scene.remove(this.oribitLine);
+        scene.remove(this.groundTrackLine);
     }
 
     // latLongToVector3(lat, lon, radius) {
