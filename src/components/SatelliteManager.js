@@ -1,9 +1,7 @@
 import * as THREE from 'three';
 import { Satellite } from './Satellite.js';
 import { SatelliteInstancing } from './SatelliteInstancing.js';
-
-const DEFAULTCOLOR = new THREE.Color(0xffffff);
-const HIGHLIGHTCOLOR = new THREE.Color(0xffff00);
+import utils from '../Utils.js';
 
 export class SatelliteManager {
     selectedSatellite;
@@ -22,23 +20,15 @@ export class SatelliteManager {
         document.body.appendChild(this.searchInput);
 
         this.satellites = [];
-        this.satelliteInstancing = null; // Will be initialized after loading satellites
+        this.satelliteInstancing = null; 
 
         this.initiateSatellites();
-
-    }
-
-    async fetchTLEData() {
-        const response = await fetch('/Satellite-tracker/satellite-data.txt');
-        const text = await response.text();
-        return text.trim().split('\n');
     }
 
     async initiateSatellites() {
-        const tleData = await this.fetchTLEData();
+        const tleData = await utils.fetchTLEData();
         const satelliteCount = Math.floor(tleData.length / 3);
         
-        // Initialize instanced rendering
         this.satelliteInstancing = new SatelliteInstancing(satelliteCount);
         this.scene.add(this.satelliteInstancing.mesh);
         
@@ -58,12 +48,15 @@ export class SatelliteManager {
         this.satellites.forEach((satellite, index) => {
             satellite.updatePosition(date);
             
-            // Update instance position and color
             this.satelliteInstancing.updateInstance(
                 index,
                 satellite.position,
                 satellite.color
             );
+
+            if (this.selectedSatellite && satellite === this.selectedSatellite) {
+                this.displaySatelliteInfo(satellite);
+            }
         });
     }
 
@@ -72,8 +65,9 @@ export class SatelliteManager {
         this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
         
         this.raycaster.setFromCamera(this.mouse, this.camera);
+
         const intersects = this.raycaster.intersectObject(this.satelliteInstancing.mesh);
-        
+   
         if (intersects.length > 0) {
             const instanceId = intersects[0].instanceId;
             const satellite = this.satellites[instanceId];
@@ -83,57 +77,50 @@ export class SatelliteManager {
 
     selectSatellite(satellite) {
         if (this.selectedSatellite) {
-            // Reset previous selection
             this.selectedSatellite.untoggle(this.scene);
             
             if (satellite.name === this.selectedSatellite.name) {
                 this.selectedSatellite = null;
-                this.infoDisplay.style.display = 'none';
+                document.getElementById('satellite-info').style.display = 'none';
                 return;
             }
         }
         this.selectedSatellite = satellite;
         this.selectedSatellite.toggle(this.scene);
+
+        document.getElementById('satellite-name').textContent = satellite.name;
         this.displaySatelliteInfo(this.selectedSatellite);
     }
 
     displaySatelliteInfo(satellite) {
         const infos = satellite.getSatelliteInfo();
-        this.infoDisplay.innerHTML = `
-            <h2 style="margin: 0 0 10px 0; font-size: 18px;">${infos.name}</h2>
-            <p>Inclination: ${infos.inclination}°</p>
-            <p>Latitude: ${infos.latitude}°</p>
-            <p>Longitude: ${infos.longitude}°</p>
-            <p>Altitude: ${infos.altitude} km</p>
-            <p>Velocity: ${infos.velocity} km/s</p>
-            <p>Period: ${infos.period} min</p>
-        `;
-        this.infoDisplay.style.display = 'block';
-    }
-
-    searchSatellite(name) {
-        const foundSatellite = this.satellites.find(sat => sat.name.toLowerCase().includes(name.toLowerCase()));
-        if (foundSatellite) {
-            this.selectSatellite(foundSatellite);
-            //this.focusOnSatellite(foundSatellite);
-        } else {
-            alert('Satellite not found');
-        }
+        const infoDisplay = document.getElementById('satellite-info');
+        
+        //document.getElementById('satellite-name').textContent = infos.name;
+        document.getElementById('satellite-inclination').textContent = infos.inclination;
+        document.getElementById('satellite-latitude').textContent = infos.latitude;
+        document.getElementById('satellite-longitude').textContent = infos.longitude;
+        document.getElementById('satellite-altitude').textContent = infos.altitude;
+        document.getElementById('satellite-velocity').textContent = infos.velocity;
+        document.getElementById('satellite-period').textContent = infos.period;
+        
+        infoDisplay.style.display = 'block';
     }
 
     createInfoDisplay() {
         const infoDisplay = document.createElement('div');
-        infoDisplay.style.position = 'absolute';
-        infoDisplay.style.top = '10px';
-        infoDisplay.style.right = '10px';
-        infoDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-        infoDisplay.style.color = 'white';
-        infoDisplay.style.padding = '10px';
-        infoDisplay.style.borderRadius = '5px';
-        infoDisplay.style.fontFamily = 'Arial, sans-serif';
-        infoDisplay.style.fontSize = '14px';
-        infoDisplay.style.display = 'none';
-        return infoDisplay;
+        infoDisplay.innerHTML = `
+            <div id="satellite-info" style="position: absolute; top: 10px; right: 10px; background-color: rgba(0, 0, 0, 0.7); color: white; padding: 10px; border-radius: 5px; font-family: Arial, sans-serif; font-size: 14px; display: none;">
+                <h2 id="satellite-name" style="margin: 0 0 10px 0; font-size: 18px;"></h2>
+                <p>Inclination: <span id="satellite-inclination"></span>°</p>
+                <p>Latitude: <span id="satellite-latitude"></span>°</p>
+                <p>Longitude: <span id="satellite-longitude"></span>°</p>
+                <p>Altitude: <span id="satellite-altitude"></span> km</p>
+                <p>Velocity: <span id="satellite-velocity"></span> km/s</p>
+                <p>Period: <span id="satellite-period"></span> min</p>
+            </div>
+        `;
+        return infoDisplay.firstElementChild;
     }
 
     createSearchInput() {
@@ -167,10 +154,14 @@ export class SatelliteManager {
         return searchContainer;
     }
 
-    // focusOnSatellite(satellite) {
-    //     const offset = new THREE.Vector3(0, 0, 1000);
-    //     const targetPosition = satellite.sprite.position.clone().add(offset);
-    //     this.camera.position.copy(targetPosition);
-    //     this.camera.lookAt(satellite.sprite.position);
-    // }
+    searchSatellite(name) {
+        const foundSatellite = this.satellites.find(sat => 
+            sat.name.toLowerCase().includes(name.toLowerCase())
+        );
+        if (foundSatellite) {
+            this.selectSatellite(foundSatellite);
+        } else {
+            alert('Satellite not found');
+        }
+    }
 }

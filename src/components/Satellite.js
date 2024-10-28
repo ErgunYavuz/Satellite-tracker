@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import * as satellite from 'satellite.js';
 
 const DEFAULTCOLOR = new THREE.Color(0xffffff);
-const HIGHLIGHTCOLOR = new THREE.Color(0xffff00);
+const HIGHLIGHTCOLOR = new THREE.Color(0x00ff00);
 
 export class Satellite {
     positionAndVelocity;
@@ -16,9 +16,8 @@ export class Satellite {
         this.selected = false;
         this.position = new THREE.Vector3();
         
-        // Create orbit and ground track lines (keep these as individual objects)
         const groundTrackGeometry = new THREE.BufferGeometry();
-        const groundTrackMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+        const groundTrackMaterial = new THREE.LineBasicMaterial({ color: HIGHLIGHTCOLOR });
         this.groundTrackLine = new THREE.Line(groundTrackGeometry, groundTrackMaterial);
     }
 
@@ -60,7 +59,7 @@ export class Satellite {
     }
 
     getProjectedPath() {
-        const pointsCount = 360;
+        const pointsCount = 1000;
         const points = [];
         const orbitalPeriod = this.getOrbitalPeriod();
 
@@ -79,11 +78,22 @@ export class Satellite {
         points.push(points[0].clone());
 
         const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-        const lineMaterial = new THREE.LineBasicMaterial({ 
-            color: 0xffff00,
+        const lineMaterial = new THREE.LineBasicMaterial({  
+            color: HIGHLIGHTCOLOR,
             linewidth: 2 
         });
         this.oribitLine = new THREE.LineSegments(lineGeometry, lineMaterial);
+    }
+
+    dispose() {
+        if (this.oribitLine) {
+            this.oribitLine.geometry.dispose();
+            this.oribitLine.material.dispose();
+        }
+        if (this.groundTrackLine) {
+            this.groundTrackLine.geometry.dispose();
+            this.groundTrackLine.material.dispose();
+        }
     }
 
     toggle(scene){
@@ -99,17 +109,9 @@ export class Satellite {
         this.color.copy(DEFAULTCOLOR);
         scene.remove(this.oribitLine);
         scene.remove(this.groundTrackLine);
+        this.oribitLine.geometry.dispose();
+        this.oribitLine.material.dispose();
+        this.groundTrackLine.geometry.dispose();
+        this.groundTrackLine.material.dispose();
     }
-
-    // latLongToVector3(lat, lon, radius) {
-    //     //console.log(this.name, lat, lon, radius)
-    //     const phi = (90 - lat) * (Math.PI / 180);
-    //     const theta = (lon + 180) * (Math.PI / 180);
-    
-    //     const x = -(radius * Math.sin(phi) * Math.cos(theta));
-    //     const z = (radius * Math.sin(phi) * Math.sin(theta));
-    //     const y = (radius * Math.cos(phi));
-
-    //     return new THREE.Vector3(x, y, z);
-    // }
 }

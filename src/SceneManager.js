@@ -11,7 +11,6 @@ export class SceneManager {
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000000);
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
-        this.updateInterval = 100; 
         
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
@@ -23,7 +22,7 @@ export class SceneManager {
 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enableDamping = true;
-        this.controls.dampingFactor = 0.25;
+        this.controls.dampingFactor = 0.03;
         this.controls.screenSpacePanning = false;
         this.controls.minDistance = 10000;
         this.controls.maxDistance = 100000;
@@ -50,14 +49,14 @@ export class SceneManager {
         const currentTime = Date.now();
         const deltaTime = currentTime - this.lastUpdateTime;
 
-        if (deltaTime >= this.updateInterval) {
+        //update every 100ms interval to reduce useless calculations
+        if (deltaTime >= 100) {
             const now = new Date();
             this.satelliteManager.updatePositions(now);
             this.earth.update(deltaTime);
-            this.lastUpdateTime = currentTime;
+            this.lastUpdateTime = now;
         }
 
-        // These still need to run every frame
         this.controls.update();
         this.renderer.render(this.scene, this.camera);
         this.stats.update();

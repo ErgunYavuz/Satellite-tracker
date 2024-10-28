@@ -6,12 +6,18 @@ const HIGHLIGHTCOLOR = new THREE.Color(0xffff00);
 export class SatelliteInstancing {
     constructor(count) {
         // Create instanced mesh for satellites
-        const spriteGeometry = new THREE.SphereGeometry(50, 8, 8); // Simplified geometry for instances
-        const spriteMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const geometry = new THREE.SphereGeometry(40, 16, 16); 
+        const material = new THREE.PointsMaterial({ 
+            color: DEFAULTCOLOR,
+            size: 50,
+            transparent: true,
+            sizeAttenuation: true,
+            opacity: 0.8
+        });
         
         this.mesh = new THREE.InstancedMesh(
-            spriteGeometry,
-            spriteMaterial,
+            geometry,
+            material,
             count
         );
         
