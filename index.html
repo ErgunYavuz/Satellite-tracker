@@ -1,15 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>3D Satellite Tracker</title>
-    <script type="module" crossorigin src="/Satellite-tracker/assets/index-B1mxdl7N.js"></script>
-    <link rel="stylesheet" crossorigin href="/Satellite-tracker/assets/index-D31CjBR5.css">
-  </head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellite Tracker</title>
+  <script type="module" crossorigin src="/Satellite-tracker/assets/index-Bd9dSYvZ.js"></script>
+  <link rel="stylesheet" crossorigin href="/Satellite-tracker/assets/index-C1g6Dm50.css">
+</head>
   <body>
-    <div id="app">
-      <div id="scene-container"></div>
+    <div id="scene-container"></div>
+    
+    <!-- Search Bar -->
+    <div class="search-container">
+        <div class="search-bar">
+            <i class="lucide lucide-search"></i>
+            <input type="text" id="satellite-search" placeholder="Search satellites...">
+            <button id="search-button">Search</button>
+        </div>
     </div>
+
+    <!-- Satellite Info Panel -->
+    <div id="satellite-info" class="info-panel">
+        <div class="info-header">
+            <div class="header-content">
+                <h2 id="satellite-name">Satellite Name</h2>
+            </div>
+            <button id="expand-button">
+                <i class="lucide lucide-arrow-up-right"></i>
+            </button>
+        </div>
+
+        <div class="info-content">
+            <div class="info-grid">
+                <!-- Orbital Parameters -->
+                <div class="info-column">
+                    <div class="info-item">
+                        <label>Inclination</label>
+                        <div class="value-with-icon">
+                            <i class="lucide lucide-navigation"></i>
+                            <span id="satellite-inclination">0</span>°
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <label>Period</label>
+                        <div class="value-with-icon">
+                            <i class="lucide lucide-globe-2"></i>
+                            <span id="satellite-period">0</span> min
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Position Info -->
+                <div class="info-column">
+                    <div class="info-item">
+                        <label>Altitude</label>
+                        <div class="value-container">
+                            <span id="satellite-altitude">0</span> km
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <label>Velocity</label>
+                        <div class="value-container">
+                            <span id="satellite-velocity">0</span> km/s
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coordinates -->
+            <div class="coordinates-section">
+                <div class="info-item">
+                    <label>Latitude</label>
+                    <div class="value-container">
+                        <span id="satellite-latitude">0</span>°
+                    </div>
+                </div>
+                <div class="info-item">
+                    <label>Longitude</label>
+                    <div class="value-container">
+                        <span id="satellite-longitude">0</span>°
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>lucide.createIcons();</script>
+    
   </body>
 </html>
