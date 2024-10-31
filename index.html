@@ -12,7 +12,7 @@
     <!-- Search Bar -->
     <div class="search-container">
         <div class="search-bar">
-            <i class="search"></i>
+            <i class="lucide lucide-search"></i>
             <input type="text" id="satellite-search" placeholder="Search satellites...">
             <button id="search-button">Search</button>
         </div>
@@ -24,9 +24,9 @@
             <div class="header-content">
                 <h2 id="satellite-name">Satellite Name</h2>
             </div>
-            <!-- <button id="expand-button">
+            <button id="expand-button">
                 <i class="lucide lucide-arrow-up-right"></i>
-            </button> -->
+            </button>
         </div>
 
         <div class="info-content">
@@ -35,13 +35,15 @@
                 <div class="info-column">
                     <div class="info-item">
                         <label>Inclination</label>
-                        <div class="value-container">
+                        <div class="value-with-icon">
+                            <i class="lucide lucide-navigation"></i>
                             <span id="satellite-inclination">0</span>°
                         </div>
                     </div>
                     <div class="info-item">
                         <label>Period</label>
-                        <div class="value-container">
+                        <div class="value-with-icon">
+                            <i class="lucide lucide-globe-2"></i>
                             <span id="satellite-period">0</span> min
                         </div>
                     </div>
@@ -83,6 +85,8 @@
     </div>
     
     <script type="module" src="./src/main.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>lucide.createIcons();</script>
     
   </body>
 </html>

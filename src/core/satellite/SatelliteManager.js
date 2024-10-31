@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { Satellite } from './Satellite.js';
 import { SatelliteInstancing } from './SatelliteInstancing.js';
-import { UIManager } from './UIManager.js';
-import utils from '../Utils.js';
+import { UIManager } from '../UIManager.js';
+import utils from '../../Utils.js';
 
 export class SatelliteManager {
     selectedSatellite;

@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import Stats from 'stats.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { Earth } from './components/Earth';
-import { SatelliteManager } from './components/SatelliteManager';
+import { Earth } from './Earth';
+import { SatelliteManager } from './satellite/SatelliteManager';
 
 export class SceneManager {
     
