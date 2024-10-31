@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Satellite } from './Satellite.js';
 import { SatelliteInstancing } from './SatelliteInstancing.js';
 import { UIManager } from '../UIManager.js';
-import utils from '../../Utils.js';
+import utils from '../Utils.js';
 
 export class SatelliteManager {
     selectedSatellite;
@@ -14,7 +14,7 @@ export class SatelliteManager {
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
 
-        this.renderer.domElement.addEventListener('click', (event) => this.onMouseClick(event), false);
+        this.renderer.domElement.addEventListener('mousedown', (event) => this.onMouseDown(event), false);
 
         this.satellites = [];
         this.satelliteInstancing = null; 
@@ -63,7 +63,7 @@ export class SatelliteManager {
         });
     }
 
-    onMouseClick(event) {
+    onMouseDown(event) {
         this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
         this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
         

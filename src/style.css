@@ -35,8 +35,8 @@ body {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.search-bar i {
-  color: rgba(255, 255, 255, 0.7);
+[data-lucide="search"] {
+  stroke: rgba(255, 255, 255, 0.7);
   margin-left: 8px;
 }
 
@@ -66,6 +66,56 @@ body {
 
 .search-bar button:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* Suggestions Box Styles */
+.suggestions-container {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  margin-top: 8px;
+  display: none;
+}
+
+.suggestions-container.visible {
+  display: block;
+}
+
+.suggestion-item {
+  padding: 8px 16px;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.suggestion-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Scrollbar styling */
+.suggestions-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.suggestions-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.suggestions-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.suggestions-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
 }
 
 /* Info Panel Styles */
@@ -100,7 +150,7 @@ body {
   gap: 8px;
 }
 
-.header-content i {
+[data-lucide="satellite"] {
   color: #60A5FA;
 }
 
@@ -152,16 +202,6 @@ body {
   font-size: 12px;
 }
 
-.value-with-icon {
-  display: flex;
-  align-items: center;
-  color: white;
-  font-size: 18px;
-}
-
-.value-with-icon i {
-  color: #60A5FA;
-}
 
 .value-container {
   color: white;
@@ -188,52 +228,3 @@ body {
 }
 
 
-/* Add to style.css */
-.suggestions-container {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  max-height: 200px;
-  overflow-y: auto;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  margin-top: 8px;
-  display: none;
-}
-
-.suggestions-container.visible {
-  display: block;
-}
-
-.suggestion-item {
-  padding: 8px 16px;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.suggestion-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* Scrollbar styling */
-.suggestions-container::-webkit-scrollbar {
-  width: 8px;
-}
-
-.suggestions-container::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-}
-
-.suggestions-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-}
-
-.suggestions-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.4);
-}

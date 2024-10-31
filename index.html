@@ -12,7 +12,7 @@
     <!-- Search Bar -->
     <div class="search-container">
         <div class="search-bar">
-            <i class="lucide lucide-search"></i>
+            <i data-lucide="search"></i>
             <input type="text" id="satellite-search" placeholder="Search satellites...">
             <button id="search-button">Search</button>
         </div>
@@ -22,10 +22,11 @@
     <div id="satellite-info" class="info-panel">
         <div class="info-header">
             <div class="header-content">
+                <i data-lucide="satellite"></i>
                 <h2 id="satellite-name">Satellite Name</h2>
             </div>
             <button id="expand-button">
-                <i class="lucide lucide-arrow-up-right"></i>
+                <i data-lucide="x"></i>
             </button>
         </div>
 
@@ -35,15 +36,13 @@
                 <div class="info-column">
                     <div class="info-item">
                         <label>Inclination</label>
-                        <div class="value-with-icon">
-                            <i class="lucide lucide-navigation"></i>
+                        <div class="value-container">
                             <span id="satellite-inclination">0</span>°
                         </div>
                     </div>
                     <div class="info-item">
                         <label>Period</label>
-                        <div class="value-with-icon">
-                            <i class="lucide lucide-globe-2"></i>
+                        <div class="value-container">
                             <span id="satellite-period">0</span> min
                         </div>
                     </div>

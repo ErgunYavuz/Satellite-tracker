@@ -65,7 +65,7 @@ export class UIManager {
         }
 
         const matches = this.satellites
-            .filter(sat => sat.name.toLowerCase().includes(searchTerm.toLowerCase()));
+            .filter(sat => sat.name.substring(0,searchTerm.length).toLowerCase().includes(searchTerm.toLowerCase()));
 
         if (matches.length === 0) {
             this.hideSuggestions();
