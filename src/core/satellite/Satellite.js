@@ -40,9 +40,7 @@ export class Satellite {
 
     getSatelliteInfo(){
         const period = this.getOrbitalPeriod();
-        // const apogee = (this.satrec.a * (1 + this.satrec.ecco) - 6371).toFixed(2); // km
-        // const perigee = (this.satrec.a * (1 - this.satrec.ecco) - 6371).toFixed(2); // km
-        const inclination = (this.satrec.inclo * 180 / Math.PI).toFixed(2); // degrees
+        const inclination = (this.satrec.inclo * 180 / Math.PI).toFixed(2);
 
         const gmst = satellite.gstime(this.date);
         const position = satellite.eciToGeodetic(this.positionAndVelocity.position, gmst);
@@ -63,8 +61,6 @@ export class Satellite {
         const points = [];
         const orbitalPeriod = this.getOrbitalPeriod();
 
-        // building a line of points of the future position of the satellites
-        // TODO: learn astrodynamics to calculate trajectories
         for (let i = 0; i < pointsCount; i++) {
             const futureDate = new Date(this.date.getTime() + (i / pointsCount) * orbitalPeriod * 60000);
             const positionAndVelocity = satellite.propagate(this.satrec, futureDate);

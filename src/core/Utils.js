@@ -4,7 +4,7 @@ const SATELLITE_DATA_URL = 'https://celestrak.org/NORAD/elements/gp.php?GROUP=ac
 const utils = {
 
     isDataStale(key, maxAgeHours = 24) {
-        const item = this.getWithTimestamp(key); // Use this. to reference within the object
+        const item = this.getWithTimestamp(key); 
         if (!item) return true;
        
         const ageInHours = (Date.now() - item.timestamp) / (1000 * 60 * 60);
