@@ -54,7 +54,7 @@ const utils = {
             const cachedData = await utils.getCachedData('debris-data');
             if (cachedData) return cachedData;
 
-            const response = await fetch("DEBRIS_DATA_URL");
+            const response = await fetch(DEBRIS_DATA_URL);
             const text = await response.text();
             const data = text.trim().split('\n');
             
