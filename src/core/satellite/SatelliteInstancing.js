@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 
 const DEFAULTCOLOR = new THREE.Color(0xffffff);
-const HIGHLIGHTCOLOR = new THREE.Color(0xffff00);
 
 export class SatelliteInstancing {
     constructor(count) {

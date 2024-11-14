@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Satellite } from './Satellite.js';
+import { Object } from './Object.js';
 import { SatelliteInstancing } from './SatelliteInstancing.js';
 import { UIManager } from '../UIManager.js';
 import utils from '../Utils.js';
@@ -16,22 +16,23 @@ export class SatelliteManager {
 
         this.renderer.domElement.addEventListener('mousedown', (event) => this.onMouseDown(event), false);
 
-        this.satellites = [];
+        this.objects = [];
         this.satelliteInstancing = null; 
 
-        this.initiateSatellites();
+        this.initiateObjects();
 
         this.uiManager = new UIManager(
             (searchTerm) => this.searchSatellite(searchTerm),
             (satellite) => this.selectSatellite(satellite),
-            this.satellites
+            this.objects
         );
     }
 
-    async initiateSatellites() {
+    async initiateObjects() {
         const tleData = await utils.fetchTLEData();
-        const satelliteCount = Math.floor(tleData.length / 3);
-        
+        const debrisData = await utils.fetchDebrisData();
+
+        const satelliteCount = Math.floor((tleData.length+debrisData.length) / 3);        
         this.satelliteInstancing = new SatelliteInstancing(satelliteCount);
         this.scene.add(this.satelliteInstancing.mesh);
         
@@ -40,15 +41,24 @@ export class SatelliteManager {
             const line1 = tleData[i + 1];
             const line2 = tleData[i + 2];
 
-            const satellite = new Satellite(name, line1, line2);
-            this.satellites.push(satellite);
+            const satellite = new Object(name, line1, line2);
+            this.objects.push(satellite);
         }
-        
-        console.log("number of satellites loaded: " + this.satellites.length);
+
+
+        for (let i = 0; i < debrisData.length; i+=3){
+            const name = debrisData[i].trim();
+            const line1 = debrisData[i + 1];
+            const line2 = debrisData[i + 2];
+
+            const debris = new Object(name, line1, line2);
+            this.objects.push(debris);
+        }
+        console.log("number of objects loaded: " + this.objects.length);
     }
 
     updatePositions(date) {
-        this.satellites.forEach((satellite, index) => {
+        this.objects.forEach((satellite, index) => {
             satellite.updatePosition(date);
             
             this.satelliteInstancing.updateInstance(
@@ -73,7 +83,7 @@ export class SatelliteManager {
    
         if (intersects.length > 0) {
             const instanceId = intersects[0].instanceId;
-            const satellite = this.satellites[instanceId];
+            const satellite = this.objects[instanceId];
             this.selectSatellite(satellite);
         }
     }
@@ -94,13 +104,13 @@ export class SatelliteManager {
     }
 
     searchSatellite(name) {
-        const foundSatellite = this.satellites.find(sat => 
+        const foundSatellite = this.objects.find(sat => 
             sat.name.toLowerCase().includes(name.toLowerCase())
         );
         if (foundSatellite) {
             this.selectSatellite(foundSatellite);
         } else {
-            this.uiManager.showError('Satellite not found');
+            this.uiManager.showError('Object not found');
         }
     }
 }
