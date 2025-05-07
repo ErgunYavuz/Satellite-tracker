@@ -30,9 +30,10 @@ export class SatelliteManager {
 
     async initiateObjects() {
         const tleData = await utils.fetchTLEData();
-        const debrisData = await utils.fetchDebrisData();
-
-        const satelliteCount = Math.floor((tleData.length+debrisData.length) / 3);        
+        //const debrisData = await utils.fetchDebrisData();
+        //const satelliteCount = Math.floor((tleData.length+debrisData.length) / 3);
+        
+        const satelliteCount = Math.floor((tleData.length) / 3);              
         this.satelliteInstancing = new SatelliteInstancing(satelliteCount);
         this.scene.add(this.satelliteInstancing.mesh);
         
@@ -46,16 +47,18 @@ export class SatelliteManager {
         }
 
 
-        for (let i = 0; i < debrisData.length; i+=3){
-            const name = debrisData[i].trim();
-            const line1 = debrisData[i + 1];
-            const line2 = debrisData[i + 2];
+        // for (let i = 0; i < debrisData.length; i+=3){
+        //     const name = debrisData[i].trim();
+        //     const line1 = debrisData[i + 1];
+        //     const line2 = debrisData[i + 2];
 
-            const debris = new Object(name, line1, line2);
-            this.objects.push(debris);
-        }
+        //     const debris = new Object(name, line1, line2);
+        //     this.objects.push(debris);
+        // }
         console.log("number of objects loaded: " + this.objects.length);
     }
+
+
 
     updatePositions(date) {
         this.objects.forEach((satellite, index) => {
