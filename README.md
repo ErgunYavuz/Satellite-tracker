@@ -1,43 +1,66 @@
+# 🛰️ Satellite Tracker
 
-# Satellite Visualization
+Real-time 3D satellite visualization built with Vue 3 and Three.js. Track thousands of satellites orbiting Earth with interactive controls and detailed orbital information.
 
-This project is a 3D visualization of Earth and its satellites using Three.js. It provides an interactive view of Earth with real-time satellite positions based on TLE (Two-Line Element set) data.
+**[🚀 Live Demo](https://ergunyavuz.github.io/Satellite-tracker/)**
 
-![Image](image.png)
+## Features
 
-## Installation
+- Tracking and computing using CELESTRAK TLE data
+- Interactive search
+- Click satellites for orbital details and trajectory visualization
+- GPU-accelerated rendering
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/ErgunYavuz/Satellite-tracker.git
-   ```
+## Quick Start
 
-2. Navigate to the project directory:
-   ```
-   cd satellite-visualization
-   ```
+```bash
+# Clone and install
+git clone https://github.com/ergunyavuz/Satellite-tracker.git
+cd Satellite-tracker
+npm install
 
-3. Install dependencies:
-   ```
-   npm install
-   ```
+# Development
+npm run dev
 
-4. Start the development server:
-   ```
-   npm run dev
-   ```
+# Production build
+npm run build
+```
 
 ## Usage
 
-- Use mouse controls to rotate, zoom, and pan the view.
-- Click on a satellite to display its information and trajectory.
-- The info panel on the top right shows details about the selected satellite.
+- **Navigate**: Mouse drag to rotate, wheel to zoom
+- **Search**: Type satellite names in the top search bar
+- **Select**: Click any satellite (white dots) to see details and orbital path
+- **Info Panel**: View inclination, period, altitude, velocity, and position
 
-## Dependencies
+## Tech Stack
 
-- Three.js
-- Satellite.js
-- Stats.js
+- **Vue 3** - Reactive UI framework
+- **Three.js** - 3D WebGL rendering
+- **Pinia** - State management
+- **satellite.js** - Orbital mechanics calculations
+- **Vite** - Build tool
 
-## Demo
-https://ergunyavuz.github.io/Satellite-tracker/
+## Project Structure
+
+```
+src/
+├── components/          # Vue UI components
+├── core/               # Three.js 3D logic
+│   ├── SceneManager.js # Main scene orchestrator
+│   ├── Earth.js        # Earth rendering
+│   └── satellite/      # Satellite management
+├── stores/             # Pinia state
+└── main.js            # Entry point
+```
+
+## Contributing
+
+1. Fork the project
+2. Create feature branch (`git checkout -b feature/name`)
+3. Commit changes (`git commit -m 'Add feature'`)
+4. Push branch (`git push origin feature/name`)
+5. Open Pull Request
+
+
+**Data provided by [CELESTRAK](https://celestrak.org/) • Built with ❤️ for space enthusiasts**
