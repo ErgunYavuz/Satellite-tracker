@@ -9,7 +9,8 @@ export class Earth {
         this.scene = scene;        
         const textureLoader = new THREE.TextureLoader();
 
-        const dayTexture = textureLoader.load('/Satellite-tracker/textures/earth_day.jpg');
+        const base = import.meta.env.BASE_URL || '/';
+        const dayTexture = textureLoader.load(`${base}textures/earth_day.jpg`);
         const earthMaterial = new THREE.MeshBasicMaterial({
             map: dayTexture
         });

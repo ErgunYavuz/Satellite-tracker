@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import * as satellite from 'satellite.js';
 
 const DEFAULTCOLOR = new THREE.Color(0xffffff);
-const DEBRISCOLOR = new THREE.Color(0xff0000);
+//const DEBRISCOLOR = new THREE.Color(0xff0000);
 const HIGHLIGHTCOLOR = new THREE.Color(0x00ff00);
 
 
@@ -14,11 +14,9 @@ export class Object {
     constructor(name, tle1, tle2) {
         this.name = name;
         this.satrec = satellite.twoline2satrec(tle1, tle2);
-        if (this.name.includes('DEB') || this.name.includes('R/B')){
-            this.color = DEBRISCOLOR.clone();
-        }else{
-            this.color = DEFAULTCOLOR.clone();
-        }
+
+        this.color = DEFAULTCOLOR.clone();
+
         this.selected = false;
         this.position = new THREE.Vector3();
         
@@ -36,12 +34,14 @@ export class Object {
         }
         if (this.selected) {
             this.groundTrackLine.geometry.setFromPoints([new THREE.Vector3(0, 0, 0), this.position]);
+            this.groundTrackLine.geometry.attributes.position.needsUpdate = true;
         }
     }
 
     getOrbitalPeriod(){
-        const meanMotion = this.satrec.no * 60 * 24 / (2 * Math.PI); // Revolutions per day
-        return (1440 / meanMotion).toFixed(2); // Orbital period in minutes
+        const revPerMin = this.satrec.no / (2 * Math.PI); // revolutions per minute
+        const periodMin = 1 / revPerMin;                   // minutes per revolution
+        return periodMin; // Number, no rounding!
     }
 
     getSatelliteInfo(){
@@ -62,29 +62,47 @@ export class Object {
         return {name: this.name, inclination, latitude, longitude, altitude, velocity, period};
     }
 
-    getProjectedPath() {
-        const pointsCount = 1000;
-        const points = [];
-        const orbitalPeriod = this.getOrbitalPeriod();
+    getProjectedPath(segments = 720) {
+        if (!this.date) this.date = new Date();
 
-        for (let i = 0; i < pointsCount; i++) {
-            const futureDate = new Date(this.date.getTime() + (i / pointsCount) * orbitalPeriod * 60000);
-            const positionAndVelocity = satellite.propagate(this.satrec, futureDate);
-            if (positionAndVelocity.position) {
-                const eci = positionAndVelocity.position;
-                const vector = new THREE.Vector3(eci.x, eci.z, -eci.y);
-                points.push(vector);
+        const periodMin = this.getOrbitalPeriod();  // precise minutes
+        const msPerSeg  = (periodMin * 60000) / segments; // milliseconds per step
+
+        const requiredLen = (segments+1) * 3;
+
+        let geom, posAttr;
+        if (!this.oribitLine) {
+            geom = new THREE.BufferGeometry();
+            posAttr = new THREE.BufferAttribute(new Float32Array(requiredLen), 3);
+            posAttr.setUsage(THREE.DynamicDrawUsage);
+            geom.setAttribute('position', posAttr);
+
+            const mat = new THREE.LineBasicMaterial({ color: HIGHLIGHTCOLOR });
+            this.oribitLine = new THREE.Line(geom, mat);
+        } else {
+            geom = this.oribitLine.geometry;
+            posAttr = geom.getAttribute('position');
+
+            if (!posAttr || posAttr.array.length !== requiredLen) {
+                posAttr = new THREE.BufferAttribute(new Float32Array(requiredLen), 3);
+                posAttr.setUsage(THREE.DynamicDrawUsage);
+                geom.setAttribute('position', posAttr);
             }
         }
-
-        points.push(points[0].clone());
-
-        const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-        const lineMaterial = new THREE.LineBasicMaterial({  
-            color: HIGHLIGHTCOLOR,
-            linewidth: 2 
-        });
-        this.oribitLine = new THREE.LineSegments(lineGeometry, lineMaterial);
+        const arr = posAttr.array;
+        
+        for (let i = 0; i <= segments; i++) {
+            const t = new Date(this.date.getTime() + i * msPerSeg); 
+            const pv = satellite.propagate(this.satrec, t);
+            const off = i * 3;
+            pv.position
+            const eci = pv.position; 
+            arr[off + 0] = eci.x;
+            arr[off + 1] = eci.z;
+            arr[off + 2] = -eci.y;
+        }
+        posAttr.needsUpdate = true;
+        geom.computeBoundingSphere();
     }
 
     dispose() {
@@ -107,17 +125,18 @@ export class Object {
     }
 
     untoggle(scene){
-        this.selected = true;
-        if (this.name.includes('DEB') || this.name.includes('R/B')){
-            this.color = DEBRISCOLOR.clone();
-        }else{
-            this.color = DEFAULTCOLOR.clone();
+        this.selected = false;
+        this.color = DEFAULTCOLOR.clone();
+
+        if (this.oribitLine) {
+            scene.remove(this.oribitLine);
+            this.oribitLine.geometry.dispose();
+            this.oribitLine.material.dispose();
         }
-        scene.remove(this.oribitLine);
-        scene.remove(this.groundTrackLine);
-        this.oribitLine.geometry.dispose();
-        this.oribitLine.material.dispose();
-        this.groundTrackLine.geometry.dispose();
-        this.groundTrackLine.material.dispose();
+        if (this.groundTrackLine) {
+            scene.remove(this.groundTrackLine);
+            this.groundTrackLine.geometry.dispose();
+            this.groundTrackLine.material.dispose();
+        }
     }
 }

@@ -11,7 +11,7 @@ export class SceneManager {
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000000);
         this.renderer = new THREE.WebGLRenderer({ antialias: true });
-        
+
         this.stats = new Stats();
         this.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
         document.body.appendChild(this.stats.dom);
@@ -24,7 +24,7 @@ export class SceneManager {
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.03;
         this.controls.screenSpacePanning = false;
-        this.controls.minDistance = 10000;
+        this.controls.minDistance = 7000;
         this.controls.maxDistance = 100000;
 
 
