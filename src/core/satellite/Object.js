@@ -38,14 +38,16 @@ export class Object {
         }
     }
 
-    getOrbitalPeriod(){
-        const revPerMin = this.satrec.no / (2 * Math.PI); // revolutions per minute
-        const periodMin = 1 / revPerMin;                   // minutes per revolution
-        return periodMin; // Number, no rounding!
+    getOrbitalPeriod(rounding = false){
+        const revPerMin = this.satrec.no / (2 * Math.PI); 
+        const periodMin = 1 / revPerMin; 
+        if (rounding) return periodMin.toFixed(2)         
+        return periodMin; 
     }
 
+
     getSatelliteInfo(){
-        const period = this.getOrbitalPeriod();
+        const period = this.getOrbitalPeriod(true);
         const inclination = (this.satrec.inclo * 180 / Math.PI).toFixed(2);
 
         const gmst = satellite.gstime(this.date);
@@ -90,7 +92,7 @@ export class Object {
             }
         }
         const arr = posAttr.array;
-        
+
         for (let i = 0; i <= segments; i++) {
             const t = new Date(this.date.getTime() + i * msPerSeg); 
             const pv = satellite.propagate(this.satrec, t);

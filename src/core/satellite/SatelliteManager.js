@@ -26,10 +26,18 @@ export class SatelliteManager {
     this.initiateObjects();
 
     this.store.$subscribe((mutation, state) => {
-      if (mutation.events.key === 'searchNonce') {
-        this.searchSatellite(state.searchTerm);
+      if (mutation.type === 'requestSearch' || 
+          (mutation.events && Array.isArray(mutation.events) && 
+           mutation.events.some(event => event.key === 'searchNonce')) ||
+          this._lastSearchNonce !== state.searchNonce) {
+        this._lastSearchNonce = state.searchNonce;
+        if (state.searchTerm) {
+          this.searchSatellite(state.searchTerm);
+        }
       }
     });
+    
+    this._lastSearchNonce = this.store.searchNonce;
   }
 
   async initiateObjects() {
@@ -55,7 +63,6 @@ export class SatelliteManager {
 
     this.store.setNames(this.objects.map((o) => o.name));
 
-    // console.log count
     console.log('number of objects loaded: ' + this.objects.length);
   }
 
@@ -63,7 +70,6 @@ export class SatelliteManager {
     this.objects.forEach((satellite, index) => {
       satellite.updatePosition(date);
 
-      // feed positions/colors to the single Points buffer
       this.satelliteInstancing.updateInstance(
         index,
         satellite.position,
@@ -75,7 +81,6 @@ export class SatelliteManager {
       }
     });
 
-    // IMPORTANT: push all updates to the GPU once per frame
     this.satelliteInstancing.commit();
   }
 
@@ -86,8 +91,6 @@ export class SatelliteManager {
 
     const intersects = this.raycaster.intersectObject(this.satelliteInstancing.mesh, false);
     if (intersects.length > 0) {
-      // With THREE.Points, the hit index corresponds to the point index
-      console.log(intersects)
       const pointIndex = intersects[0].index;
       return this.objects[pointIndex];
     }
