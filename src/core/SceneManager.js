@@ -5,66 +5,66 @@ import { Earth } from './Earth'
 import { SatelliteManager } from './satellite/SatelliteManager'
 
 export class SceneManager {
-    constructor(container) {
-        this.container = container
-        this.scene = new THREE.Scene()
-        this.camera = new THREE.PerspectiveCamera(
-            60,
-            window.innerWidth / window.innerHeight,
-            0.1,
-            1000000
-        )
-        this.renderer = new THREE.WebGLRenderer({ antialias: true })
+	constructor(container) {
+		this.container = container
+		this.scene = new THREE.Scene()
+		this.camera = new THREE.PerspectiveCamera(
+			60,
+			window.innerWidth / window.innerHeight,
+			0.1,
+			1000000
+		)
+		this.renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true })
 
-        this.stats = new Stats()
-        this.stats.showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
-        document.body.appendChild(this.stats.dom)
+		this.stats = new Stats()
+		this.stats.showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
+		document.body.appendChild(this.stats.dom)
 
-        this.renderer.setSize(window.innerWidth, window.innerHeight)
-        this.container.appendChild(this.renderer.domElement)
-        this.camera.position.z = 20000
+		this.renderer.setSize(window.innerWidth, window.innerHeight)
+		this.container.appendChild(this.renderer.domElement)
+		this.camera.position.z = 20000
 
-        this.controls = new OrbitControls(this.camera, this.renderer.domElement)
-        this.controls.enableDamping = true
-        this.controls.dampingFactor = 0.03
-        this.controls.screenSpacePanning = false
-        this.controls.minDistance = 7000
-        this.controls.maxDistance = 100000
+		this.controls = new OrbitControls(this.camera, this.renderer.domElement)
+		this.controls.enableDamping = true
+		this.controls.dampingFactor = 0.03
+		this.controls.screenSpacePanning = false
+		this.controls.minDistance = 7000
+		this.controls.maxDistance = 100000
 
-        this.initialDate = new Date()
-        this.earth = new Earth(this.scene)
-        this.satelliteManager = new SatelliteManager(
-            this.scene,
-            this.camera,
-            this.renderer
-        )
-        this.lastUpdateTime = Date.now()
+		this.initialDate = new Date()
+		this.earth = new Earth(this.scene)
+		this.satelliteManager = new SatelliteManager(
+			this.scene,
+			this.camera,
+			this.renderer
+		)
+		this.lastUpdateTime = Date.now()
 
-        window.addEventListener('resize', () => this.onWindowResize(), false)
-    }
+		window.addEventListener('resize', () => this.onWindowResize(), false)
+	}
 
-    onWindowResize() {
-        this.camera.aspect = window.innerWidth / window.innerHeight
-        this.camera.updateProjectionMatrix()
-        this.renderer.setSize(window.innerWidth, window.innerHeight)
-    }
+	onWindowResize() {
+		this.camera.aspect = window.innerWidth / window.innerHeight
+		this.camera.updateProjectionMatrix()
+		this.renderer.setSize(window.innerWidth, window.innerHeight)
+	}
 
-    animate() {
-        requestAnimationFrame(() => this.animate())
+	animate() {
+		requestAnimationFrame(() => this.animate())
 
-        const currentTime = Date.now()
-        const deltaTime = currentTime - this.lastUpdateTime
+		const currentTime = Date.now()
+		const deltaTime = currentTime - this.lastUpdateTime
 
-        //update every 100ms interval to reduce useless calculations
-        if (deltaTime >= 100) {
-            const now = new Date()
-            this.satelliteManager.updatePositions(now)
-            this.earth.update(deltaTime)
-            this.lastUpdateTime = now
-        }
+		//update every 100ms interval to reduce useless calculations
+		if (deltaTime >= 100) {
+			const now = new Date()
+			this.satelliteManager.updatePositions(now)
+			this.earth.update(deltaTime)
+			this.lastUpdateTime = now
+		}
 
-        this.controls.update()
-        this.renderer.render(this.scene, this.camera)
-        this.stats.update()
-    }
+		this.controls.update()
+		this.renderer.render(this.scene, this.camera)
+		this.stats.update()
+	}
 }

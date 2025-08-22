@@ -62,5 +62,4 @@ src/
 4. Push branch (`git push origin feature/name`)
 5. Open Pull Request
 
-
 **Data provided by [CELESTRAK](https://celestrak.org/) • Built with ❤️ for space enthusiasts**
