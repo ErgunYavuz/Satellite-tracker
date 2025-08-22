@@ -9,20 +9,20 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 export default defineConfig({
-  plugins: [vue()],
-  base: '/Satellite-tracker/', 
-  build: {
-    outDir: 'dist',
-    assetsDir: 'assets',
-    rollupOptions: {
-      output: {
-        manualChunks: undefined
-      }
-    }
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
+    plugins: [vue()],
+    base: '/Satellite-tracker/',
+    build: {
+        outDir: 'dist',
+        assetsDir: 'assets',
+        rollupOptions: {
+            output: {
+                manualChunks: undefined,
+            },
+        },
     },
-  }
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, 'src'),
+        },
+    },
 })

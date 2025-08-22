@@ -1,5 +1,5 @@
 import './style.css'
-import { SceneManager } from './core/SceneManager';
+import { SceneManager } from './core/SceneManager'
 import { createApp } from 'vue'
 import App from './App.vue'
 import { createPinia, setActivePinia } from 'pinia'
@@ -12,9 +12,9 @@ app.use(pinia)
 setActivePinia(pinia)
 
 // Now initialize Three.js which uses the store
-const container = document.getElementById('scene-container');
-const sceneManager = new SceneManager(container);
-sceneManager.animate();
+const container = document.getElementById('scene-container')
+const sceneManager = new SceneManager(container)
+sceneManager.animate()
 
 // Mount the Vue UI
 app.mount('#app')

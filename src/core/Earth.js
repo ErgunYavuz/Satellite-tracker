@@ -1,31 +1,31 @@
-import * as THREE from 'three';
-import * as satellite from 'satellite.js';
+import * as THREE from 'three'
+import * as satellite from 'satellite.js'
 
-const RADIUSS = 6371; // Earth radius in km
-const ROTATIONSPEED = 7.2921159e-5; // Earth's rotation speed in radians per second
+const RADIUSS = 6371 // Earth radius in km
+const ROTATIONSPEED = 7.2921159e-5 // Earth's rotation speed in radians per second
 
 export class Earth {
     constructor(scene) {
-        this.scene = scene;        
-        const textureLoader = new THREE.TextureLoader();
+        this.scene = scene
+        const textureLoader = new THREE.TextureLoader()
 
-        const base = import.meta.env.BASE_URL || '/';
-        const dayTexture = textureLoader.load(`${base}textures/earth_day.jpg`);
+        const base = import.meta.env.BASE_URL || '/'
+        const dayTexture = textureLoader.load(`${base}textures/earth_day.jpg`)
         const earthMaterial = new THREE.MeshBasicMaterial({
-            map: dayTexture
-        });
-        const geometry = new THREE.SphereGeometry(RADIUSS, 64, 64);
+            map: dayTexture,
+        })
+        const geometry = new THREE.SphereGeometry(RADIUSS, 64, 64)
 
-        this.earthMesh = new THREE.Mesh(geometry, earthMaterial);
+        this.earthMesh = new THREE.Mesh(geometry, earthMaterial)
 
         // Set initial rotation based on GMST
-        this.earthMesh.rotation.y = satellite.gstime(new Date());
+        this.earthMesh.rotation.y = satellite.gstime(new Date())
 
         scene.add(this.earthMesh)
     }
 
     update(deltaTime) {
-        this.earthMesh.rotation.y += ROTATIONSPEED * deltaTime / 1000; // Convert deltaTime to seconds 
+        this.earthMesh.rotation.y += (ROTATIONSPEED * deltaTime) / 1000 // Convert deltaTime to seconds
     }
 
     // addDot(latitude, longitude, color = 0xff0000, size = 0.1) {
@@ -46,5 +46,3 @@ export class Earth {
     //     return dot;
     // }
 }
-
-
