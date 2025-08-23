@@ -5,66 +5,84 @@ import { Earth } from './Earth'
 import { SatelliteManager } from './satellite/SatelliteManager'
 
 export class SceneManager {
-	constructor(container) {
-		this.container = container
-		this.scene = new THREE.Scene()
-		this.camera = new THREE.PerspectiveCamera(
-			60,
-			window.innerWidth / window.innerHeight,
-			0.1,
-			1000000
-		)
-		this.renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true })
+    constructor(container, interval = 100, showStats = true) {
+        this.container = container
+        this.interval = interval
 
-		this.stats = new Stats()
-		this.stats.showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
-		document.body.appendChild(this.stats.dom)
+        // three.js core
+        this.scene = new THREE.Scene()
+        this.camera = new THREE.PerspectiveCamera(
+            60,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1_000_000
+        )
+        this.renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            logarithmicDepthBuffer: true,
+        })
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+        this.renderer.setSize(window.innerWidth, window.innerHeight)
+        this.container.appendChild(this.renderer.domElement)
+        this.camera.position.z = 20000
 
-		this.renderer.setSize(window.innerWidth, window.innerHeight)
-		this.container.appendChild(this.renderer.domElement)
-		this.camera.position.z = 20000
+        // controls
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement)
+        this.controls.enableDamping = true
+        this.controls.dampingFactor = 0.03
+        this.controls.screenSpacePanning = false
+        this.controls.minDistance = 7000
+        this.controls.maxDistance = 100000
 
-		this.controls = new OrbitControls(this.camera, this.renderer.domElement)
-		this.controls.enableDamping = true
-		this.controls.dampingFactor = 0.03
-		this.controls.screenSpacePanning = false
-		this.controls.minDistance = 7000
-		this.controls.maxDistance = 100000
+        if (showStats) {
+            this.stats = new Stats()
+            this.stats.showPanel(0)
+            document.body.appendChild(this.stats.dom)
+        }
 
-		this.initialDate = new Date()
-		this.earth = new Earth(this.scene)
-		this.satelliteManager = new SatelliteManager(
-			this.scene,
-			this.camera,
-			this.renderer
-		)
-		this.lastUpdateTime = Date.now()
+        // scene content
+        this.earth = new Earth(this.scene)
+        this.satelliteManager = new SatelliteManager(
+            this.scene,
+            this.camera,
+            this.renderer
+        )
 
-		window.addEventListener('resize', () => this.onWindowResize(), false)
-	}
+        // timings
+        this.clock = new THREE.Clock() // seconds since last frame
+        this.accumMs = 0 // accumulator for fixed timestep
+        this.elapsedMs = 0 // total simulated ms since start
+        this.startDate = new Date() // simulation reference "now"
 
-	onWindowResize() {
-		this.camera.aspect = window.innerWidth / window.innerHeight
-		this.camera.updateProjectionMatrix()
-		this.renderer.setSize(window.innerWidth, window.innerHeight)
-	}
+        window.addEventListener('resize', () => this.onWindowResize(), false)
 
-	animate() {
-		requestAnimationFrame(() => this.animate())
+        this.animate = this.animate.bind(this)
+    }
 
-		const currentTime = Date.now()
-		const deltaTime = currentTime - this.lastUpdateTime
+    onWindowResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight
+        this.camera.updateProjectionMatrix()
+        this.renderer.setSize(window.innerWidth, window.innerHeight)
+    }
 
-		//update every 100ms interval to reduce useless calculations
-		if (deltaTime >= 100) {
-			const now = new Date()
-			this.satelliteManager.updatePositions(now)
-			this.earth.update(deltaTime)
-			this.lastUpdateTime = now
-		}
+    animate() {
+        requestAnimationFrame(this.animate)
 
-		this.controls.update()
-		this.renderer.render(this.scene, this.camera)
-		this.stats.update()
-	}
+        const dtMs = this.clock.getDelta() * 1000
+        this.accumMs += dtMs
+
+        while (this.accumMs >= this.interval) {
+            this.elapsedMs += this.interval
+            const simDate = new Date(this.startDate.getTime() + this.elapsedMs)
+
+            this.satelliteManager.updatePositions(simDate)
+            this.earth.update(this.interval)
+
+            this.accumMs -= this.interval
+        }
+
+        this.controls.update()
+        this.renderer.render(this.scene, this.camera)
+        this.stats.update()
+    }
 }
